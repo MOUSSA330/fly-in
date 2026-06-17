@@ -1,0 +1,18 @@
+# Easy Level 1: Simple linear path
+nb_drones: 2
+
+start_hub: start 0 0 [color=green max_drones=2 ]
+hub: waypoint1 1 0 [color=blue max_drones=2 zone=restricted]
+hub: waypoint2 2 0 [color=blue max_drones=2 zone=restricted]
+
+hub: test1 3 3 [color=blue max_drones=2 zone=priority ]
+hub: test2 4 4  [color=blue max_drones=2 zone=priority]
+hub: test3 3 5  [color=blue max_drones=2 zone=priority]
+
+end_hub: goal 3 0 [color=red max_drones=2 ]
+connection: start-waypoint1 [max_link_capacity=2]
+connection: waypoint1-waypoint2 [max_link_capacity=2]
+connection: waypoint2-goal [max_link_capacity=2]
+connection: test1-test2
+connection: test2-test3
+connection: test3-test1

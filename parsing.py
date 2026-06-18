@@ -75,8 +75,8 @@ class Parser:
 
                     else:
                         raise ValueError(
-                            f"unknow this line {line} "
-                            f"in number {line_number}")
+                            f"unknow this line {line!r}"
+                            f" in number {line_number}")
                     # print(line)
                 # print(self.zones.keys())
         except BaseException as e:
@@ -134,9 +134,6 @@ class Parser:
             x = int(parts[1])
             y = int(parts[2])
 
-            if x < 0 or y < 0:
-                raise ValueError(f"Error in line {line_number} "
-                                 "cordinat must be positive integer ")
         except ValueError:
             raise ValueError(f"Error in line {line_number} "
                              "cordinat must be integer ")
@@ -157,15 +154,16 @@ class Parser:
 
         color = "none"
         max_drones = 1
+        zone_type = "normal"
 
         metadata = metadata[1:-1]
         tags = metadata.split()
 
-        if len(tags) > 2:
+        if len(tags) > 3:
             raise ValueError(
                             f"Error in lin {line_number}: "
-                            "expect maximum 2 attributes "
-                            "'color=... max_drones=...'"
+                            "expect maximum 3 attributes "
+                            "'color=... max_drones=...zone=...'"
                             )
         for a in tags:
             if "=" not in a:
@@ -175,34 +173,53 @@ class Parser:
                                 )
             key, value = a.split("=", 1)
 
-            if key == "color":
+            if key.strip() == "zone":
+                if value not in self.valid_zones:
+                    raise ValueError(
+                        f"Error in line {line_number} "
+                        f"invalid zone type expect {self.valid_zones}"
+                    )
+
+                if value == "blocked":
+                    raise ValueError(
+                        f"Error in line {line_number} "
+                        f"invalid zone type start must be normal zone!"
+                    )
+
+                zone_type = value
+
+            elif key == "color":
                 if value not in self.allowed_colors:
                     raise ValueError(
                         f"Error in line {line_number}: "
                         f"Invalid color '{value}'. Allowed colors are: "
-                        "{', '.join(self.allowed_colors)}"
+                        f"{', '.join(self.allowed_colors)}"
                     )
                 color = value
             elif key == "max_drones":
                 try:
                     max_drones = int(value)
-                    if max_drones <= 0:
+                    if max_drones <= 0 or max_drones < self.nb_drones:
                         raise ValueError
                 except ValueError:
                     raise ValueError(
                         f"Error in {line_number} "
                         "max_drones must be  valid integer"
+                        " and be exact number of drones"
                                      )
             else:
                 raise ValueError(
                     f"Error in line {line_number} "
-                    "expect keys just 'color' and max_drones")
+                    "expect keys just 'color' and max_drones"
+                    "i'm not entrresi about type of zone this is"
+                    "start zone"
+                    )
 
         zone = Zone(
             name=name,
             x=x,
             y=y,
-            zone_type="start",
+            zone_type=zone_type,
             color=color,
             max_drones=max_drones
         )
@@ -234,9 +251,9 @@ class Parser:
             x = int(parts[1])
             y = int(parts[2])
 
-            if x < 0 or y < 0:
-                raise ValueError(f"Error in line {line_number} "
-                                 "cordinat must be positive integer ")
+            # if x < 0 or y < 0:
+            #     raise ValueError(f"Error in line {line_number} "
+            #                      "cordinat must be positive integer ")
         except ValueError:
             raise ValueError(f"Error in line {line_number} "
                              "cordinat must be integer ")
@@ -258,12 +275,13 @@ class Parser:
             metadata = ""
 
         color = "none"
-        max_drones = 1
+        max_drones = self.nb_drones
+        zone_type = "normal"
 
         metadata = metadata[1:-1]
         tags = metadata.split()
 
-        if len(tags) > 2:
+        if len(tags) > 3:
             raise ValueError(
                             f"Error in lin {line_number}: "
                             "expect maximum 2 attributes "
@@ -275,7 +293,15 @@ class Parser:
                                  "expect'color=<value> max_drones=<number>'")
             key, value = a.split("=", 1)
 
-            if key == "color":
+            if key.strip() == "zone":
+                if value not in self.valid_zones:
+                    raise ValueError(
+                        f"Error in line {line_number} "
+                        f"invalid zone type expect {self.valid_zones}"
+                    )
+                zone_type = value
+
+            elif key == "color":
                 if value not in self.allowed_colors:
                     raise ValueError(
                         f"Error in line {line_number}: "
@@ -286,12 +312,13 @@ class Parser:
             elif key == "max_drones":
                 try:
                     max_drones = int(value)
-                    if max_drones <= 0:
+                    if max_drones <= 0 or max_drones < self.nb_drones:
                         raise ValueError
                 except ValueError:
                     raise ValueError(
-                        f"Error in {line_number} "
+                        f"Error in line {line_number} "
                         "max_drones must be  valid integer"
+                        " and must be equal max drones"
                                      )
             else:
                 raise ValueError(
@@ -302,7 +329,7 @@ class Parser:
             name=name,
             x=x,
             y=y,
-            zone_type="end",
+            zone_type=zone_type,
             color=color,
             max_drones=max_drones
         )
